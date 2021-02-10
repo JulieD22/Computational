@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(spotifyr)
+```
+```{r}
+
+seventies <- get_playlist_audio_features("","67zYW4wCQezR6AH8EuNZ1Q")
+eighties <- get_playlist_audio_features("","23xQYspGsaIsztrKTHM8cN")
+
+complete_data <- bind_rows(seventies %>% mutate(category = '70s'),eighties %>% mutate(category = '80s'))
+
+ggplot(complete_data, aes(x=valence,y=energy,color=category))+geom_point()+facet_wrap(~category) +     
+  scale_x_continuous(         
+    limits = c(0, 1),
+    breaks = c(0, 0.50, 1),   
+    minor_breaks = NULL       
+  )
+
+
+```
+
