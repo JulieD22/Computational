@@ -402,11 +402,11 @@ Spotify_Wrapped &lt;-
   )
 
 
-Spotify_Wrapped %&gt;%                    # Start with awards.
+Spotify_Wrapped %&gt;%                    
   mutate(
     mode = ifelse(mode == 0, &quot;Minor&quot;, &quot;Major&quot;)
   ) %&gt;%
-  ggplot(                     # Set up the plot.
+  ggplot(                     
     aes(
       x = valence,
       y = energy,
@@ -414,9 +414,9 @@ Spotify_Wrapped %&gt;%                    # Start with awards.
       colour = mode
     )
   ) +
-  geom_point() +              # Scatter plot.
-  geom_rug(size = 0.1) +      # Add &#39;fringes&#39; to show data distribution.
-  geom_text(                  # Add text labels from above.
+  geom_point() +              
+  geom_rug(size = 0.1) +      
+  geom_text(                  
     aes(
       x = valence,
       y = energy,
@@ -428,34 +428,34 @@ Spotify_Wrapped %&gt;%                    # Start with awards.
         valence = c(0.090, 0.123),
         energy = c(0.101, 0.967)
       ),
-    colour = &quot;black&quot;,         # Override colour (not mode here).
-    size = 3,                 # Override size (not loudness here).
-    hjust = &quot;left&quot;,           # Align left side of label with the point.
-    vjust = &quot;bottom&quot;,         # Align bottom of label with the point.
-    nudge_x = -0.05,          # Nudge the label slightly left.
-    nudge_y = 0.02            # Nudge the label slightly up.
+    colour = &quot;black&quot;,         
+    size = 3,                 
+    hjust = &quot;left&quot;,           
+    vjust = &quot;bottom&quot;,         
+    nudge_x = -0.05,          
+    nudge_y = 0.02            
   ) +
-  facet_wrap(~category) +     # Separate charts per playlist.
-  scale_x_continuous(         # Fine-tune the x axis.
+  facet_wrap(~category) +     
+  scale_x_continuous(         
     limits = c(0, 1),
-    breaks = c(0, 0.50, 1),   # Use grid-lines for quadrants only.
-    minor_breaks = NULL       # Remove &#39;minor&#39; grid-lines.
+    breaks = c(0, 0.50, 1),   
+    minor_breaks = NULL       
   ) +
-  scale_y_continuous(         # Fine-tune the y axis in the same way.
+  scale_y_continuous(         
     limits = c(0, 1),
     breaks = c(0, 0.50, 1),
     minor_breaks = NULL
   ) +
-  scale_colour_brewer(        # Use the Color Brewer to choose a palette.
-    type = &quot;qual&quot;,            # Qualitative set.
-    palette = &quot;Paired&quot;        # Name of the palette is &#39;Paired&#39;.
+  scale_colour_brewer(       
+    type = &quot;qual&quot;,            
+    palette = &quot;Paired&quot;        
   ) +
-  scale_size_continuous(      # Fine-tune the sizes of each point.
-    trans = &quot;exp&quot;,            # Use an exp transformation to emphasise loud.
-    guide = &quot;none&quot;            # Remove the legend for size.
+  scale_size_continuous(      
+    trans = &quot;exp&quot;,            
+    guide = &quot;none&quot;            
   ) +
-  theme_light() +             # Use a simpler theme.
-  labs(                       # Make the titles nice.
+  theme_light() +            
+  labs(                       
     x = &quot;Valence&quot;,
     y = &quot;Energy&quot;,
     colour = &quot;Mode&quot;
