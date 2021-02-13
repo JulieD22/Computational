@@ -6,8 +6,17 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message=FALSE, echo = FALSE)
 ```
+
+
+
+For my corpus I would like to compare my Spotify Wrapped playlist to my friends and familys Wrapped playlitst. The reason I chose this is because I think that a lot of people like the Wrapped playlists and its a fun way to see what you listened to the previous year. I also think it's interesting to see if the playlists are accurate and if the persons actually listened to the songs in it. I think it's fun to just see what I listened to and what my friends listend to, and what the difference is. 
+I have 2 Wrapped playlists to compare to mine. I know mine has a lot of pop music in it, so I expect it will have a lot of songs in it with a fast tempo and a high valence. One of my friends, Hemke, listened to a few artists that i also listened to, so i expect ours will have some similair features. My other friend, Fleur, listens to more rap music, so i expect hers to have al lot of energy and maybe danceability. Fleur has a lot of songs in her playlist that I dont know, so i think it will be interessting to see how it compares to mine and Hemke's playlists. I expect it will be quite different to ours. We all listen to music only in Spotify, so I think the information that i get from the playlists will be accurate.
+
+in this plot you can see all three playlist are actually very similair. Fleur's playlist does have a bit more danceability but not a lot. My playlist has the least energy. I would say Hemke's playlist sit in between mine and Fleur's playlist.
+
+
 
 ```{r}
 library(tidyverse)
@@ -25,64 +34,14 @@ Spotify_Wrapped <-
   )
 
 
-Spotify_Wrapped %>%                    
-  mutate(
-    mode = ifelse(mode == 0, "Minor", "Major")
-  ) %>%
-  ggplot(                     
-    aes(
-      x = valence,
-      y = energy,
-      size = loudness,
-      colour = mode
-    )
-  ) +
-  geom_point() +              
-  geom_rug(size = 0.1) +      
-  geom_text(                  
-    aes(
-      x = valence,
-      y = energy,
-      label = label
-    ),
-    data = 
-      tibble(
-        label = c( ""),
-        valence = c(0.090, 0.123),
-        energy = c(0.101, 0.967)
-      ),
-    colour = "black",         
-    size = 3,                 
-    hjust = "left",           
-    vjust = "bottom",         
-    nudge_x = -0.05,          
-    nudge_y = 0.02            
-  ) +
-  facet_wrap(~category) +     
-  scale_x_continuous(         
-    limits = c(0, 1),
-    breaks = c(0, 0.50, 1),   
-    minor_breaks = NULL       
-  ) +
-  scale_y_continuous(         
-    limits = c(0, 1),
-    breaks = c(0, 0.50, 1),
-    minor_breaks = NULL
-  ) +
-  scale_colour_brewer(       
-    type = "qual",            
-    palette = "Paired"        
-  ) +
-  scale_size_continuous(      
-    trans = "exp",            
-    guide = "none"            
-  ) +
-  theme_light() +            
-  labs(                       
-    x = "Valence",
-    y = "Energy",
-    colour = "Mode"
-  )
+ggplot(Spotify_Wrapped,aes(x=valence,y=danceability,color=category,size=energy)) + geom_point() +ggtitle("Comparing Spotify Wrapped Playlists")
+
+
+
+
+
+
+
 
 
 
