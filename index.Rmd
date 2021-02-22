@@ -14,29 +14,63 @@ knitr::opts_chunk$set(message=FALSE, echo = FALSE)
 ```
  Spotify Wrapped {.tabset}
 ---------------------------------------------------------------------------------------------------------
-### Comparing Three Spotify Wrapped Playlists
+# Comparing Three Spotify Wrapped Playlists
 For my corpus I would like to compare my Spotify Wrapped playlist to my friends and familys Wrapped playlitst. The reason I chose this is because I think that a lot of people like the Wrapped playlists and its a fun way to see what you listened to the previous year. I also think it's interesting to see if the playlists are accurate and if the persons actually listened to the songs in it. I think it's fun to just see what I listened to and what my friends listend to, and what the difference is. 
 
 I have 2 Wrapped playlists to compare to mine. I know mine has a lot of pop music in it, so I expect it will have a lot of songs in it with a fast tempo and a high valence. One of my friends, Hemke, listened to a few artists that i also listened to, so i expect ours will have some similar features. My other friend, Fleur, listens to more rap music, so i expect hers to have al lot of energy and maybe danceability. Fleur has a lot of songs in her playlist that I dont know, so i think it will be interessting to see how it compares to mine and Hemke's playlists. I expect it will be quite different to ours. We all listen to music only in Spotify, so I think the information that i get from the playlists will be accurate.
 
-In the I made plot you can see that Fleur's playlist lies above my and Hemkes playlist, which means it has more danceability. And that my and Hemke's cross with each other.My playlist has a few songs that have very low valence and danceability. Hemke's playlist is a bit of a mix, but has more similarities with my playlist. The features were very similar to what I expected. What i didn't expect were the outliers in the playlists. I have a few songs with low valence, danceability and energy, Fleur has a few songs with low danceability and one with low energy, and Hemke has a few songs with low danceability. I'll go through these song one by one. 
 
-I'll start with my playlist. The songs with the lowest danceability (under 0.3) are "Once Upon a December", "All is Found", "Still Hurting", Beethoven's 3th symphony, "Davy Jones" and "Exile ft. Bon Iver". All these songs, exept the last one, are musical numbers or instrumental numbers, so it makes sense that they have low danceability. "Davy Jones" and Beethoven's 3th are also the ones with the lowest energy (under 0.1). The ones with the lowest valence (under 0.1) are "Fine Line", "No Time To Die", "Falling", "My Future" and again "Unce Upon a December". These songs are slow ballet songs. 
+# Three playlist in their own plot
+column {.tabset}
+---------------------------------------------------------------------------------------------------------------------
+### Fleur
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(spotifyr)
+library(plotly)
+library(Cairo)
+library(dplyr)
 
-Fleur's song with low energy is "i love you" from Billie Eilish. The songs with the lowest danceability (under 0.3) are "Mumzy" and "When We Were Young". 
+Julie <- get_playlist_audio_features("","37i9dQZF1EM27HE4pdYYcz") 
+Hemke <- get_playlist_audio_features("","37i9dQZF1EMgeVFiZwhb4Z")
+Fleur <- get_playlist_audio_features("","37i9dQZF1EMd6LXIgrTylx")
 
-Hemke's songs with the lowest danceability are "Venus In Furs" and "Answer to Yourself". 
+Spotify_Wrapped <-
+  bind_rows(
+    Julie %>% mutate(category = "Julie"),
+    Hemke %>% mutate(category = "Hemke"),
+    Fleur %>% mutate(category = "Fleur")
+      )
+
+ggplot(Fleur,aes(x=valence,y=danceability,size=energy)) + geom_point() +ggtitle("Fleur") + geom_smooth() + expand_limits(x = 0, y = 0)
+
+```
+
+### Hemke
+```{r}
+ggplot(Hemke,aes(x=valence,y=danceability,size=energy)) + geom_point() +ggtitle("Hemke") + geom_smooth() +expand_limits(x = 0, y = 0)
+```
+
+### Julie
+```{r}
+ggplot(Julie,aes(x=valence,y=danceability,size=energy)) + geom_point() +ggtitle("Julie") + geom_smooth() + expand_limits(x = 0, y = 0)
+```
 
 
-### Visualisation
+# Three playlist in one plot
 
+column {data-width=500}
+---------------------------------------------------------------------
 
 
 ```{r}
 library(tidyverse)
+library(ggplot2)
 library(spotifyr)
 library(plotly)
 library(Cairo)
+library(dplyr)
 
 Julie <- get_playlist_audio_features("","37i9dQZF1EM27HE4pdYYcz") 
 Hemke <- get_playlist_audio_features("","37i9dQZF1EMgeVFiZwhb4Z")
@@ -60,10 +94,24 @@ Spotify_Wrapped <-
 
 
 ```{r}
-ggplot(Spotify_Wrapped,aes(x=valence,y=danceability,color=category,size=energy)) + geom_point() +ggtitle("All three playlists together") + geom_smooth()
+ggplot(Spotify_Wrapped,aes(x=valence,y=danceability,color=category,size=energy)) + geom_point() +ggtitle("All three playlists together") + geom_smooth() 
+
+
 ```
 
-### Conclusion
+column {data-width=500}
+-----------------------------------------------------------------------------------------
+In the I made plot you can see that Fleur's playlist lies above my and Hemkes playlist, which means it has more danceability. And that my and Hemke's cross with each other.My playlist has a few songs that have very low valence and danceability. Hemke's playlist is a bit of a mix, but has more similarities with my playlist. The features were very similar to what I expected. What i didn't expect were the outliers in the playlists. I have a few songs with low valence, danceability and energy, Fleur has a few songs with low danceability and one with low energy, and Hemke has a few songs with low danceability. I'll go through these song one by one. 
+
+I'll start with my playlist. The songs with the lowest danceability (under 0.3) are "Once Upon a December", "All is Found", "Still Hurting", Beethoven's 3th symphony, "Davy Jones" and "Exile ft. Bon Iver". All these songs, exept the last one, are musical numbers or instrumental numbers, so it makes sense that they have low danceability. "Davy Jones" and Beethoven's 3th are also the ones with the lowest energy (under 0.1). The ones with the lowest valence (under 0.1) are "Fine Line", "No Time To Die", "Falling", "My Future" and again "Unce Upon a December". These songs are slow ballet songs. 
+
+Fleur's song with low energy is "i love you" from Billie Eilish. The songs with the lowest danceability (under 0.3) are "Mumzy" and "When We Were Young". 
+
+Hemke's songs with the lowest danceability are "Venus In Furs" and "Answer to Yourself". 
+
+
+
+# Conclusion
 
 
 
