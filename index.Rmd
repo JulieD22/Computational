@@ -9,15 +9,116 @@ output:
 
 ---
 
-```{r setup, include=FALSE}
+```{r setup, echo=FALSE, include=FALSE}
 knitr::opts_chunk$set(message=FALSE, echo = FALSE)
 ```
- Spotify Wrapped {.tabset}
----------------------------------------------------------------------------------------------------------
+
+ 
+
 # Comparing Three Spotify Wrapped Playlists
 For my corpus I would like to compare my Spotify Wrapped playlist to my friends and familys Wrapped playlitst. The reason I chose this is because I think that a lot of people like the Wrapped playlists and its a fun way to see what you listened to the previous year. I also think it's interesting to see if the playlists are accurate and if the persons actually listened to the songs in it. I think it's fun to just see what I listened to and what my friends listend to, and what the difference is. 
 
 I have 2 Wrapped playlists to compare to mine. I know mine has a lot of pop music in it, so I expect it will have a lot of songs in it with a fast tempo and a high valence. One of my friends, Hemke, listened to a few artists that i also listened to, so i expect ours will have some similar features. My other friend, Fleur, listens to more rap music, so i expect hers to have al lot of energy and maybe danceability. Fleur has a lot of songs in her playlist that I dont know, so i think it will be interessting to see how it compares to mine and Hemke's playlists. I expect it will be quite different to ours. We all listen to music only in Spotify, so I think the information that i get from the playlists will be accurate.
+
+# Chromagram of "Once Upon a December" from Anastasia
+column 
+----------------------------------------------------------------------------------------------------------------------
+
+```{r}
+library(compmus)
+library(tidyverse)
+library(ggplot2)
+library(spotifyr)
+library(plotly)
+library(Cairo)
+library(dplyr)
+
+oupa <-
+  get_tidy_audio_analysis("3jMy7ITBiLgVwC15RBK9Hp") %>%
+  select(segments) %>%
+  unnest(segments) %>%
+  select(start, duration, pitches)
+
+oupa %>%
+  mutate(pitches = map(pitches, compmus_normalise, "manhattan")) %>%
+  compmus_gather_chroma() %>% 
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = pitch_class,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c()
+```
+ 
+
+# self similairity matrix of "my future" from Billie Eillsh
+
+```{r}
+library(compmus)
+library(tidyverse)
+library(ggplot2)
+library(spotifyr)
+library(plotly)
+library(Cairo)
+library(dplyr)
+
+myfuture <-
+  get_tidy_audio_analysis("2ygvZOXrIeVL4xZmAWJT2C") %>%
+  compmus_align(bars, segments) %>%
+  select(bars) %>%
+  unnest(bars) %>%
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "acentre", norm = "manhattan"
+      )
+  ) %>%
+  mutate(
+    timbre =
+      map(segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  )
+bind_rows(
+  myfuture %>%
+    compmus_self_similarity(pitches, "aitchison") %>%
+    mutate(d = d / max(d), type = "Chroma"),
+  myfuture %>%
+    compmus_self_similarity(timbre, "euclidean") %>%
+    mutate(d = d / max(d), type = "Timbre")
+) %>%
+  mutate() %>%
+  ggplot(
+    aes(
+      x = xstart + xduration / 2,
+      width = xduration,
+      y = ystart + yduration / 2,
+      height = yduration,
+      fill = d
+    )
+  ) +
+  geom_tile() +
+  coord_fixed() +
+  facet_wrap(~type) +
+  scale_fill_viridis_c(guide = "none") +
+  theme_classic() +
+  labs(x = "", y = "")
+
+
+
+
+```
+
+
+
 
 
 # Three playlist in their own plot
@@ -25,6 +126,7 @@ column {.tabset}
 ---------------------------------------------------------------------------------------------------------------------
 ### Fleur
 ```{r}
+
 library(tidyverse)
 library(ggplot2)
 library(spotifyr)
@@ -42,27 +144,34 @@ Spotify_Wrapped <-
     Hemke %>% mutate(category = "Hemke"),
     Fleur %>% mutate(category = "Fleur")
       )
+```
 
-ggplot(Fleur,aes(x=valence,y=danceability,size=energy)) + geom_point() +ggtitle("Fleur") + geom_smooth() + expand_limits(x = 0, y = 0)
+```{r}
+plotf<-ggplot(Fleur,aes(x=valence,y=danceability,size =energy,label=track.name)) + geom_point() +ggtitle("Fleur") + geom_smooth() + expand_limits(x = 0, y = 0)
+
+ggplotly(plotf)
+
 
 ```
 
 ### Hemke
 ```{r}
-ggplot(Hemke,aes(x=valence,y=danceability,size=energy)) + geom_point() +ggtitle("Hemke") + geom_smooth() +expand_limits(x = 0, y = 0)
+ploth<-ggplot(Hemke,aes(x=valence,y=danceability,size=energy,label=track.name)) + geom_point() +ggtitle("Hemke") + geom_smooth() +expand_limits(x = 0, y = 0)
+
+ggplotly(ploth)
 ```
 
 ### Julie
 ```{r}
-ggplot(Julie,aes(x=valence,y=danceability,size=energy)) + geom_point() +ggtitle("Julie") + geom_smooth() + expand_limits(x = 0, y = 0)
+plotj <-ggplot(Julie,aes(x=valence,y=danceability,size=energy, label=track.name)) + geom_point() +ggtitle("Julie") + geom_smooth() + expand_limits(x = 0, y = 0)
+
+ggplotly(plotj)
 ```
 
 
-# Three playlist in one plot
-
-column {data-width=500}
----------------------------------------------------------------------
-
+# Fleur likes to dance
+column {width=500}
+--------------------------------------------------------------------
 
 ```{r}
 library(tidyverse)
@@ -94,16 +203,18 @@ Spotify_Wrapped <-
 
 
 ```{r}
-ggplot(Spotify_Wrapped,aes(x=valence,y=danceability,color=category,size=energy)) + geom_point() +ggtitle("All three playlists together") + geom_smooth() 
+plot1 <- ggplot(Spotify_Wrapped,aes(x=valence,y=danceability,color=category,size=energy, alpha=0.5,label=track.name)) + geom_point() +ggtitle("All three playlists together") + geom_smooth() 
+
+ggplotly(plot1)
 
 
 ```
 
-column {data-width=500}
------------------------------------------------------------------------------------------
+column {width=500}
+----------------------------------------------------------------------------
 In the I made plot you can see that Fleur's playlist lies above my and Hemkes playlist, which means it has more danceability. And that my and Hemke's cross with each other.My playlist has a few songs that have very low valence and danceability. Hemke's playlist is a bit of a mix, but has more similarities with my playlist. The features were very similar to what I expected. What i didn't expect were the outliers in the playlists. I have a few songs with low valence, danceability and energy, Fleur has a few songs with low danceability and one with low energy, and Hemke has a few songs with low danceability. I'll go through these song one by one. 
 
-I'll start with my playlist. The songs with the lowest danceability (under 0.3) are "Once Upon a December", "All is Found", "Still Hurting", Beethoven's 3th symphony, "Davy Jones" and "Exile ft. Bon Iver". All these songs, exept the last one, are musical numbers or instrumental numbers, so it makes sense that they have low danceability. "Davy Jones" and Beethoven's 3th are also the ones with the lowest energy (under 0.1). The ones with the lowest valence (under 0.1) are "Fine Line", "No Time To Die", "Falling", "My Future" and again "Unce Upon a December". These songs are slow ballet songs. 
+I'll start with my playlist. The songs with the lowest danceability (under 0.3) are "Once Upon a December", "All is Found", "Still Hurting", Beethoven's 3th symphony, "Davy Jones" and "Exile ft. Bon Iver". All these songs, exept the last one, are musical numbers or instrumental numbers, so it makes sense that they have low danceability. "Davy Jones" and Beethoven's 3th are also the ones with the lowest energy (under 0.1). The ones with the lowest valence (under 0.1) are "Fine Line", "No Time To Die", "Falling", "My Future" and again "Once Upon a December". These songs are slow ballet songs. 
 
 Fleur's song with low energy is "i love you" from Billie Eilish. The songs with the lowest danceability (under 0.3) are "Mumzy" and "When We Were Young". 
 
