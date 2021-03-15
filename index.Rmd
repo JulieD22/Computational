@@ -13,7 +13,156 @@ output:
 knitr::opts_chunk$set(message=FALSE, echo = FALSE)
 ```
 
- 
+```{r}
+library(tidyverse)
+library(compmus)
+library(ggplot2)
+library(spotifyr)
+library(plotly)
+library(Cairo)
+library(dplyr)
+
+Julie <- get_playlist_audio_features("","37i9dQZF1EM27HE4pdYYcz") 
+Hemke <- get_playlist_audio_features("","37i9dQZF1EMgeVFiZwhb4Z")
+Fleur <- get_playlist_audio_features("","37i9dQZF1EMd6LXIgrTylx")
+
+Spotify_Wrapped <-
+  bind_rows(
+    Julie %>% mutate(category = "Julie"),
+    Hemke %>% mutate(category = "Hemke"),
+    Fleur %>% mutate(category = "Fleur")
+      )
+```
+
+
+### Major or Minor? 
+```{r}
+Spotify_Wrapped$mode_factor <- factor(Spotify_Wrapped$mode, levels = c(1,0), labels = c("Major", "Minor"))
+
+```
+
+
+```{r}
+
+plotmode<-ggplot(Spotify_Wrapped, aes(x = mode_factor, fill = category)) +
+geom_bar(position = position_dodge()) +
+labs(x = "Mode", y = "Count")
+                                                                                
+ggplotly(plotmode)
+```
+
+***
+Here you can see the mode of the songs in our playlists. We all have more major songs, which I expected. But we still have quite a lot of minor songs, which I didn't expect. 
+
+### A variety of keys 
+
+```{r}
+
+plotkeys<-ggplot(Spotify_Wrapped, aes(x = key,fill=category,label=track.name)) +
+  geom_histogram()
+ggplotly(plotkeys)
+```
+
+***
+This is an overview of the keys of the songs in our playlists. We all have the most songs in C. I found it interesting to see that I have 6 songs in D#/Eb and Fleur and Hemke only 2 each. All three of us have the same amount of songs in A, namely 9 each. 
+
+### Different tempi's
+
+```{r}
+plottempi<-ggplot(Spotify_Wrapped,aes(x = tempo, fill=category, label=track.name)) +
+  geom_histogram()
+ggplotly(plottempi)
+```
+
+***
+This shows the different tempi of the songs in our playlists. The most songs are around 120BPM. We all have a few very fast songs, but the rest is pretty average. The peak is at 120BPM. 120BPM is what most people prefer. The songs with a fast tempo in my playlist are "Small Talk", "Fired Up", "Vossi Bop" en "Lost In Yesterday". Hemke's two songs are "Small Talk" and "Vossi Bop", the same as two of mine. Fleur's one is "GUESS WHAT? (feat. XakiMichele)"
+
+
+### "December", Fleur's most listened song  
+
+#### Onsets of "December"
+```{r}
+decemberF <-
+  get_tidy_audio_analysis("2XTyx7Txuj6dZ1lLYLj3Wc") %>%
+  select(segments) %>%
+  unnest(segments)
+
+decemberF %>%
+  mutate(loudness_max_time = start + loudness_max_time) %>%
+  arrange(loudness_max_time) %>%
+  mutate(delta_loudness = loudness_max - lag(loudness_max)) %>%
+  ggplot(aes(x = loudness_max_time, y = pmax(0, delta_loudness))) +
+  geom_line() +
+  xlim(0, 30) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Novelty")
+
+```
+
+****
+In this plot you can see the onsets,which is where things change in the song. It has a lot of high peaks. 
+#### Tempogram Of "December"
+```{r}
+decemberF <-
+  get_tidy_audio_analysis("2XTyx7Txuj6dZ1lLYLj3Wc")
+
+decemberF%>%
+tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) %>%
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+```
+
+
+
+****
+Here you can see that "December" has a clear beat, which you can see the tempogram you can see a nice yellow line of the beat.
+
+### Tempogram of "WHAT'S GOOD", one of Julie's songs
+
+#### Novelty and onsets
+
+```{r}
+whatsgood <- get_tidy_audio_analysis("6bOkaEXc5CopinGazSLokx")
+
+whatsgood <- get_tidy_audio_analysis("6bOkaEXc5CopinGazSLokx")%>%
+   select(segments) %>%
+  unnest(segments)
+
+whatsgood %>%
+  mutate(loudness_max_time = start + loudness_max_time) %>%
+  arrange(loudness_max_time) %>%
+  mutate(delta_loudness = loudness_max - lag(loudness_max)) %>%
+  ggplot(aes(x = loudness_max_time, y = pmax(0, delta_loudness))) +
+  geom_line() +
+  xlim(0, 30) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Novelty")
+
+
+```
+
+****
+This plot shows the onsets of the "WHAT's GOOD". It begins with a very high peak, but the rest are a lot smaller.
+#### Tempogram
+```{r}
+whatsgood <- get_tidy_audio_analysis("6bOkaEXc5CopinGazSLokx")
+
+whatsgood %>%
+  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) %>%
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+```
+
+****
+"WHAT'S GOOD" has an evident tempo, as you can see from the yellow line in the tempogram. The parts where there is more yellow at the bottom en top too, the song has an instrument (I think a synthesizer) that creates a kind of grainy noise.
+
+
 
 ### Comparing Three Spotify Wrapped Playlists
 For my corpus I would like to compare my Spotify Wrapped playlist to my friends and familys Wrapped playlitst. The reason I chose this is because I think that a lot of people like the Wrapped playlists and its a fun way to see what you listened to the previous year. I also think it's interesting to see if the playlists are accurate and if the persons actually listened to the songs in it. I think it's fun to just see what I listened to and what my friends listend to, and what the difference is. 
@@ -259,7 +408,7 @@ bind_rows(
 ***
 This is a self similairity matrix of "leaders". This song is from Fleur's playlist and has the most danceability, valence and energy of all the playlists.
 
-### (new) Chordogram of "Venus in Furs" by The Velvet Underground, outlier of Hemke's playlist.
+### Chordogram of "Venus in Furs" by The Velvet Underground, outlier of Hemke's playlist.
 
 
 
@@ -384,9 +533,9 @@ venusinfurs %>%
 
 ***
 
-This is chordogram of "Venus in Furs", one of the outliers of Hemke's playlist. The darkestcolors of the chords are G#min, C#min, Abmaj and Dbmaj. Around the 100 and 200 seconds this changes. Then it is Emaj and Emin. The song ends with a fade out, so this explains the lighter colors. It has a very clear chord progressions.  
+This is chordogram of "Venus in Furs", one of the outliers of Hemke's playlist. The darkestcolors of the chords are G#min, C#min, Abmaj and Dbmaj. Around the 100 and 200 seconds this changes. Then it is Emaj and Emin. The song ends with a fade out, so this explains the lighter colors. It has a very clear chord progressions. And you can also hear it in the song very clearly. 
 
-### (new) Chrordogram of "Sunflower, vol 6." by Harry Styles
+### Chrordogram of "Sunflower, vol 6." by Harry Styles
 ```{r}
 
 circshift <- function(v, n) {
@@ -506,7 +655,7 @@ sun6 %>%
 *** 
 This is a chordogram of "Sunflower, VOl. 6" by Harry Styles. I thought it would be interesting to look at one of Harry styles songs since Hemke and I both listened to his songs. The chords that are used in this song are Cmaj, Fmaj, Cmin and Fmin. Bbmin also gets used but not a lot. The song begins and ends with a fade in/out, which the lighter colors in the beginning and ending of the chordogram show. It's an upbeat song. I didn't expect there to be so little dark colors, so not a very distinctive key or main chord maybe. The Fmaj chord around 125 seconds is a vocal harmony with many layers of vocals. 
 
-### (new) Chordogram of  "i love you" by Billie Eillish, one of Fleur's outliers
+### Chordogram of  "i love you" by Billie Eillish, one of Fleur's outliers
 
 ```{r}
 
