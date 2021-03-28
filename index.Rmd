@@ -40,233 +40,11 @@ Spotify_Wrapped <-
 ```
 
 
-### New Loudness
-
-```{r}
-Spotify_Wrapped %>%
-  ggplot(aes(x = loudness)) +
-  geom_histogram() +
-  facet_wrap(~category) + ggtitle("Loudness")
-```
-
-***
-Here you can see the loudness of the playlists. The X-axis shows how much decibels the songs have and the Y-axis how many numbers have those amount of decibels. All three are leaning towards the right side of the plot, so all three of us have a pretty loud playlist. Fleur's playlist does have a higher peak in between -10 and -5 decibels.  Hemke's playlist  has a songs that is more quiet and Fleur as well, but Julie's playlist has more songs in between -20 and -15 decibels.
-
-### new Clustering
-
-
-#### Fleur 
-```{r}
-eennaam <-
-  get_playlist_audio_features( "6ywNWWhYlG2kr738AAal7D","0Cr3yhXx2WayVeANlooriq") %>%
-  add_audio_analysis() %>%
-  mutate(
-    segments = map2(segments, key, compmus_c_transpose),
-    pitches =
-      map(segments,
-        compmus_summarise, pitches,
-        method = "mean", norm = "manhattan"
-      ),
-    timbre =
-      map(
-        segments,
-        compmus_summarise, timbre,
-        method = "mean"
-      )
-  ) %>%
-  mutate(pitches = map(pitches, compmus_normalise, "clr")) %>%
-  mutate_at(vars(pitches, timbre), map, bind_rows) %>%
-  unnest(cols = c(pitches, timbre))
-```
-
-```{r}
-eennaam_juice <-
-  recipe(
-    track.name ~
-      danceability +
-      energy +
-      loudness +
-      speechiness +
-      acousticness +
-      instrumentalness +
-      liveness +
-      valence +
-      tempo +
-      duration +
-      C + `C#|Db` + D + `D#|Eb` +
-      E + `F` + `F#|Gb` + G +
-      `G#|Ab` + A + `A#|Bb` + B +
-      c01 + c02 + c03 + c04 + c05 + c06 +
-      c07 + c08 + c09 + c10 + c11 + c12,
-    data = eennaam
-  ) %>%
-  step_center(all_predictors()) %>%
-  step_scale(all_predictors()) %>% 
-  # step_range(all_predictors()) %>% 
-  prep(eennaam %>% mutate(track.name = str_trunc(track.name, 20))) %>%
-  juice() %>%
-  column_to_rownames("track.name")
-```
-
-```{r}
-eennaam_dist <- dist(eennaam_juice, method = "euclidean")
-```
-
-
-```{r}
-eennaam_dist %>% 
-  hclust(method = "complete") %>% # Try single, average, and complete.
-  dendro_data() %>%
-  ggdendrogram()
-```
-
-****
-This clustering shows the 10 most listened songs of Fleur's playlist. It has two pretty clear clusters. One with only three songs and one with the other seven. The songs on the right side all have a fast tempo and have the same kind of structure.
-
-
-#### Hemke
-
-```{r}
-eenaam <-
-  get_playlist_audio_features( "0Cr3yhXx2WayVeANlooriq","6ywNWWhYlG2kr738AAal7D") %>%
-  add_audio_analysis() %>%
-  mutate(
-    segments = map2(segments, key, compmus_c_transpose),
-    pitches =
-      map(segments,
-        compmus_summarise, pitches,
-        method = "mean", norm = "manhattan"
-      ),
-    timbre =
-      map(
-        segments,
-        compmus_summarise, timbre,
-        method = "mean"
-      )
-  ) %>%
-  mutate(pitches = map(pitches, compmus_normalise, "clr")) %>%
-  mutate_at(vars(pitches, timbre), map, bind_rows) %>%
-  unnest(cols = c(pitches, timbre))
-```
-
-```{r}
-eenaam_juice <-
-  recipe(
-    track.name ~
-      danceability +
-      energy +
-      loudness +
-      speechiness +
-      acousticness +
-      instrumentalness +
-      liveness +
-      valence +
-      tempo +
-      duration +
-      C + `C#|Db` + D + `D#|Eb` +
-      E + `F` + `F#|Gb` + G +
-      `G#|Ab` + A + `A#|Bb` + B +
-      c01 + c02 + c03 + c04 + c05 + c06 +
-      c07 + c08 + c09 + c10 + c11 + c12,
-    data = eenaam
-  ) %>%
-  step_center(all_predictors()) %>%
-  step_scale(all_predictors()) %>% 
-  # step_range(all_predictors()) %>% 
-  prep(eenaam %>% mutate(track.name = str_trunc(track.name, 20))) %>%
-  juice() %>%
-  column_to_rownames("track.name")
-```
-
-```{r}
-eenaam_dist <- dist(eenaam_juice, method = "euclidean")
-```
-
-```{r}
-eenaam_dist %>% 
-  hclust(method = "complete") %>% # Try single, average, and complete.
-  dendro_data() %>%
-  ggdendrogram()
-```
-
-****
-This clustering shows the 10 most listened songs of Hemke's. Just like Fleur's, this one also has two pretty clear clusters. But here there are two clusters of five songs. The songs on the right cluster are al a bit slower. The songs in the left have a bit more valence and can be considers happier. 
- 
-
-#### Julie
-
-
-```{r}
-eeaam <-
-  get_playlist_audio_features( "0Cr3yhXx2WayVeANlooriq","018Ld7uIx2xTRPXzVVut8z") %>%
-  add_audio_analysis() %>%
-  mutate(
-    segments = map2(segments, key, compmus_c_transpose),
-    pitches =
-      map(segments,
-        compmus_summarise, pitches,
-        method = "mean", norm = "manhattan"
-      ),
-    timbre =
-      map(
-        segments,
-        compmus_summarise, timbre,
-        method = "mean"
-      )
-  ) %>%
-  mutate(pitches = map(pitches, compmus_normalise, "clr")) %>%
-  mutate_at(vars(pitches, timbre), map, bind_rows) %>%
-  unnest(cols = c(pitches, timbre))
-```
-
-```{r}
-eeaam_juice <-
-  recipe(
-    track.name ~
-      danceability +
-      energy +
-      loudness +
-      speechiness +
-      acousticness +
-      instrumentalness +
-      liveness +
-      valence +
-      tempo +
-      duration +
-      C + `C#|Db` + D + `D#|Eb` +
-      E + `F` + `F#|Gb` + G +
-      `G#|Ab` + A + `A#|Bb` + B +
-      c01 + c02 + c03 + c04 + c05 + c06 +
-      c07 + c08 + c09 + c10 + c11 + c12,
-    data = eeaam
-  ) %>%
-  step_center(all_predictors()) %>%
-  step_scale(all_predictors()) %>% 
-  # step_range(all_predictors()) %>% 
-  prep(eeaam %>% mutate(track.name = str_trunc(track.name, 20))) %>%
-  juice() %>%
-  column_to_rownames("track.name")
-```
-
-```{r}
-eeaam_dist <- dist(eeaam_juice, method = "euclidean")
-```
-
-
-```{r}
-eeaam_dist %>% 
-  hclust(method = "complete") %>% # Try single, average, and complete.
-  dendro_data() %>%
-  ggdendrogram()
-```
-
-****
-This clustering shows the 10 most listened songs of Julie's playlist. There are three clear clusters. What I find interesting is that I have a few of the same songs as Hemke, but they are clustered differently. For example, "Golden" and "Lights Up" are together in one cluster here, but in Hemke's cluster "Golden" was on the far left and "Lights Up" on the far right. The middle cluster here has more upbeat songs, and the left cluster has two slow and sad songs. 
 
 ### **Comparing** Three Spotify Wrapped Playlists
 For my corpus I would like to compare my Spotify Wrapped playlist to my friends and familys Wrapped playlists. The reason I chose this is because I think that a lot of people like the Wrapped playlists and its a fun way to see what you listened to the previous year. I also think it's interesting to see if the playlists are accurate and if the persons actually listened to the songs in it. I think it's fun to just see what I listened to and what my friends listend to, and what the difference is. 
 
-I have 2 Wrapped playlists to compare to mine. To compare the three playlist, I'm going to use the Spotify API features. I think the most important features to look at are valence, danceability and energy. I know mine has a lot of pop music in it, so I expect it will have a lot of songs in it with a fast tempo and a high valence. One of my friends, Hemke, listened to a few artists that i also listened to, so i expect ours will have some similar features. My other friend, Fleur, listens to more rap music, so i expect hers to have al lot of energy and maybe danceability. Fleur has a lot of songs in her playlist that I dont know, so i think it will be interesting to see how it compares to mine and Hemke's playlists. I expect it will be quite different to ours. We all listen to music only in Spotify, so I think the information that i get from the playlists will be accurate.
+I have 2 Wrapped playlists to compare to mine. To compare the three playlist, I'm going to use the Spotify API features. I think the most important features to look at for my corpus are valence, danceability and energy. I know mine has a lot of pop music in it, so I expect it will have a lot of songs in it with a fast tempo and a high valence. One of my friends, Hemke, listened to a few artists that i also listened to, so i expect ours will have some similar features. Those features will probably be danceablilty and high valence.  My other friend, Fleur, listens to more rap music, so i expect hers to have a lot of energy and maybe danceability. Fleur has a lot of songs in her playlist that I dont know, so i think it will be interesting to see how it compares to mine and Hemke's playlists. I expect it will be quite different to ours. We all listen to music only in Spotify, so I think the information that i get from the playlists will be accurate.
 
 The playlist that I'm going to use are: 
  - [Your Top Songs 2020 Fleur](https://open.spotify.com/playlist/37i9dQZF1EMd6LXIgrTylx?si=RKx64nfqQvSu9u5nVB8Djw)
@@ -275,12 +53,8 @@ The playlist that I'm going to use are:
 
 
 
-
-
-
-
-
-### **Fleur** likes to dance 
+### Looking at the **playlists** one by one
+#### Fleur likes to dance 
 ```{r}
 
 library(tidyverse)
@@ -310,33 +84,33 @@ ggplotly(plotf)
 
 ```
 
-***
+****
 As you can see in this scatterplot Fleur's playlist has a lot danceability, so that matches with my previous statement that Fleur listens to a lot of hiphop. Her playlist also has a decent amount of energy. There is only one song with low energy, namely "i love you"by Billie Eilish. 
 
 
-### **Julie**, from low to high
+#### Julie, from low to high
 
 ```{r}
 plotj <-ggplot(Julie,aes(x=valence,y=danceability,size=energy, label=track.name, alpha=0.5)) + geom_point() +ggtitle("Julie") + geom_smooth() + expand_limits(x = 0, y = 0)
 
 ggplotly(plotj)
 ```
-*** 
+**** 
 My playlist is a bit of a mix. I have songs that have low energy, but also high. The same goes for valence and danceability. If you compare my danceability with fleur's, it is a lot lower than Fleur's. 
 
 
-### **Hemke** is the middle ground
+#### Hemke is the middle ground
 
 ```{r}
 ploth<-ggplot(Hemke,aes(x=valence,y=danceability,size=energy,label=track.name,alpha=0.5)) + geom_point() +ggtitle("Hemke") + geom_smooth() +expand_limits(x = 0, y = 0)
 
 ggplotly(ploth)
 ```
-*** 
+****
 Hemke's danceablity level is centered in the middle erea in the plot. This also counts for the valence and energy. It's very straight forward, in the best way of course, with a few outliers.
 
 
-### How does it look if the playlist are in one plot?
+### How does it look if the *playlist* are in **one plot**?
 
 ```{r}
 library(tidyverse)
@@ -386,7 +160,65 @@ Hemke's songs with the lowest danceability are "Venus In Furs" and "Answer to Yo
 
 I noticed that here are a few kind of turquoise dots. Those are songs that Hemke and I have in common. They are all songs from Harry styles.
 
-### Are we energetic or not? Let's take a look at the **energy**
+### Looking at the **mode**, **key** and **tempo**
+#### How do we like our **mode**? 
+```{r}
+Spotify_Wrapped$mode_factor <- factor(Spotify_Wrapped$mode, levels = c(1,0), labels = c("Major", "Minor"))
+
+```
+
+
+```{r}
+
+plotmode<-ggplot(Spotify_Wrapped, aes(x = mode_factor, fill = category)) +
+geom_bar(position = position_dodge()) +
+labs(x = "Mode", y = "Count") + ggtitle("Major or Minor?")
+                                                                                
+ggplotly(plotmode)
+```
+
+****
+Here you can see the mode of the songs in our playlists. We all have more major songs, which I expected. But we still have quite a lot of minor songs, which I didn't expect. 
+
+#### variety of **keys** 
+
+```{r}
+
+plotkeys<-ggplot(Spotify_Wrapped, aes(x = key,fill=category,label=track.name)) +
+  geom_histogram() + ggtitle("The Keys of the Songs")
+ggplotly(plotkeys)
+```
+
+****
+This is an overview of the keys of the songs in our playlists. We all have the most songs in C. I found it interesting to see that I have 6 songs in D#/Eb and Fleur and Hemke only 2 each. All three of us have the same amount of songs in A, namely 9 each.
+
+#### How fast do we like our songs? An overview of **tempo**
+
+```{r}
+plottempi<-ggplot(Spotify_Wrapped,aes(x = tempo, fill=category, label=track.name)) +
+  geom_histogram() + ggtitle("Different Tempi")
+ggplotly(plottempi)
+```
+
+****
+This shows the different tempi of the songs in our playlists. The most songs are around 120BPM. We all have a few very fast songs, but the rest is pretty average. The peak is at 120BPM. 120BPM is what most people prefer. The songs with a fast tempo in my playlist are "Small Talk", "Fired Up", "Vossi Bop" en "Lost In Yesterday". Hemke's two songs are "Small Talk" and "Vossi Bop", the same as two of mine. Fleur's one is "GUESS WHAT? (feat. XakiMichele)"
+
+
+### But what about **valence**, **energy**, **Loudness** and **speechiness**?
+#### **Valence**:positive or negative?
+```{r}
+Spotify_Wrapped %>%
+  ggplot(aes(x = valence)) +
+  geom_histogram(binwidth = 0.1) +
+  facet_wrap(~category)
+
+```
+
+****
+Here you can see the valence of our playlists. How higher the value, how more positive (happy,cheerful) the song is. A low value can be associated with more negative (sad, angry) songs. As you can see we all have a pretty high value, so our songs are positive. I would say Hemke's playlist has the most valence, then Fleur and then Julie. I didn't expect Fleur's playlist to have such high valence, or at least more valence than Julie's. 
+
+
+#### Are we energetic or not? Let's take a look at the **energy**
 ```{r}
 Julie <- get_playlist_audio_features("","37i9dQZF1EM27HE4pdYYcz") 
 Hemke <- get_playlist_audio_features("","37i9dQZF1EMgeVFiZwhb4Z")
@@ -407,54 +239,39 @@ Spotify_Wrapped %>%
 
 ```
 
-***
+****
 
 Fleur's playlist lies between the middle and the higher levels of energy. Hemke's is mostly high. My playlist is a mix of low, middle and high. This is mostly what i expected. I expected Fleur's to have a bit more energy, or at least more energy that Hemke's.
 
+#### **Loudness**
 
-### How do we like our **mode**? 
 ```{r}
-Spotify_Wrapped$mode_factor <- factor(Spotify_Wrapped$mode, levels = c(1,0), labels = c("Major", "Minor"))
-
+Spotify_Wrapped %>%
+  ggplot(aes(x = loudness)) +
+  geom_histogram() +
+  facet_wrap(~category) + ggtitle("Loudness")
 ```
 
 
-```{r}
+****
+Here you can see the loudness of the playlists. The X-axis shows how much decibels the songs have and the Y-axis how many numbers have those amount of decibels. The lower decible value, the less loud it is (so -20 is less loud than -5). All three are leaning towards the right side of the plot, so all three of us have a pretty loud playlist. Fleur's playlist does have a higher peak in between -10 and -5 decibels.  Hemke's playlist  has a song that is quieter and Fleur as well, but Julie's playlist has more songs in between -20 and -15 decibels.
 
-plotmode<-ggplot(Spotify_Wrapped, aes(x = mode_factor, fill = category)) +
-geom_bar(position = position_dodge()) +
-labs(x = "Mode", y = "Count") + ggtitle("Major or Minor?")
-                                                                                
-ggplotly(plotmode)
-```
-
-***
-Here you can see the mode of the songs in our playlists. We all have more major songs, which I expected. But we still have quite a lot of minor songs, which I didn't expect. 
-
-### A variety of **keys** 
+#### From speaking to singing: **speechiness**
 
 ```{r}
-
-plotkeys<-ggplot(Spotify_Wrapped, aes(x = key,fill=category,label=track.name)) +
-  geom_histogram() + ggtitle("The Keys of the Songs")
-ggplotly(plotkeys)
+Spotify_Wrapped %>%
+  ggplot(aes(x = speechiness)) +
+  geom_histogram() +
+  facet_wrap(~category) + ggtitle("Speechiness")
 ```
 
-***
-This is an overview of the keys of the songs in our playlists. We all have the most songs in C. I found it interesting to see that I have 6 songs in D#/Eb and Fleur and Hemke only 2 each. All three of us have the same amount of songs in A, namely 9 each.
+****
+Here you can see the speechiness of our playlists. All our songs are bellow the 0.66 value, which means that none or our songs are entirely made of spoken words. This makes sense because it's all music. Fleur's songs are more distributed than Hemke and Julie's. This also makes sense because Fleur listens to more rap, and the values between 0.33 and 0.66 contains music and speech, and thus rap music. Hemke and Julie have a peak below the 0.1 value, and all values below 0.33 represent music. This, again, also makes sense because Hemke and Julie listen more pop music. The few outlier that Hemke and Julie have are rap songs, like "WHAT'S GOOD" and "Vossi Bop". One of Julie's outliers is a song from the musical Hamilton, which is a rap musical. 
+What I didn't expect was that the songs Julie has that are completely instrumental (for example "Davy Jones") weren't the ones with the lowest speechiness values. 
 
-### How fast do we like our songs? An overview of **tempo**
+### A self similairity matrix and a chordogram: what do they say songs?
 
-```{r}
-plottempi<-ggplot(Spotify_Wrapped,aes(x = tempo, fill=category, label=track.name)) +
-  geom_histogram() + ggtitle("Different Tempi's")
-ggplotly(plottempi)
-```
-
-***
-This shows the different tempi of the songs in our playlists. The most songs are around 120BPM. We all have a few very fast songs, but the rest is pretty average. The peak is at 120BPM. 120BPM is what most people prefer. The songs with a fast tempo in my playlist are "Small Talk", "Fired Up", "Vossi Bop" en "Lost In Yesterday". Hemke's two songs are "Small Talk" and "Vossi Bop", the same as two of mine. Fleur's one is "GUESS WHAT? (feat. XakiMichele)"
-
-### Chromagram of "Davy Jones" from Pirates of the Caribbean, outlier from **Julie's** playlist.
+####  Chromagram of "Davy Jones" from Pirates of the Caribbean, outlier from **Julie's** playlist.
 ```{r}
 library(compmus)
 library(tidyverse)
@@ -487,11 +304,11 @@ davy %>%
   scale_fill_viridis_c()
 ```
  
-***
+****
 
 This is a chromagram of "Davy jones" from Pirates of the Caribbean. This Song is from Julie's playlist and has the lowest danceability, valence and energy of all the playlists.
 
-### Self similairity matrix of "Leaders" from Lil Uzi Vert, outlier of **Fleur's** playlist.
+#### Self similairity matrix of "Leaders" from Lil Uzi Vert, outlier of **Fleur's** playlist.
 
 
 ```{r}
@@ -552,10 +369,12 @@ bind_rows(
 
 ```
 
-***
+****
 This is a self similairity matrix of "leaders". This song is from Fleur's playlist and has the most danceability, valence and energy of all the playlists.
 
-### Chordogram of "Venus in Furs" by The Velvet Underground, outlier of **Hemke's** playlist.
+
+### Looking at chords with the help of **chordograms**
+#### "Venus in Furs" by The Velvet Underground, outlier of **Hemke's** playlist.
 
 
 
@@ -678,11 +497,11 @@ venusinfurs %>%
 
 ```
 
-***
+****
 
 This is chordogram of "Venus in Furs", one of the outliers of Hemke's playlist. The darkestcolors of the chords are G#min, C#min, Abmaj and Dbmaj. Around the 100 and 200 seconds this changes. Then it is Emaj and Emin. The song ends with a fade out, so this explains the lighter colors. It has a very clear chord progressions. And you can also hear it in the song very clearly. 
 
-### **Chordogram** of "Sunflower, vol 6." by Harry Styles
+#### "Sunflower, vol 6." by **Harry Styles**
 ```{r}
 
 circshift <- function(v, n) {
@@ -799,10 +618,10 @@ sun6 %>%
   labs(x = "Time (s)", y = "")
 ```
 
-*** 
+**** 
 This is a chordogram of "Sunflower, VOl. 6" by Harry Styles. I thought it would be interesting to look at one of Harry styles songs since Hemke and I both listened to his songs. The chords that are used in this song are Cmaj, Fmaj, Cmin and Fmin. Bbmin also gets used but not a lot. The song begins and ends with a fade in/out, which the lighter colors in the beginning and ending of the chordogram show. It's an upbeat song. I didn't expect there to be so little dark colors, so not a very distinctive key or main chord maybe. The Fmaj chord around 125 seconds is a vocal harmony with many layers of vocals. 
 
-### Chordogram of  "i love you" by Billie Eillish, one of **Fleur's** outliers
+#### "i love you" by Billie Eillish, one of **Fleur's** outliers
 
 ```{r}
 
@@ -922,12 +741,13 @@ iloveyou %>%
 
 ```
 
-***
+****
 This is a chordogram of "i love you" by Billie Eillish, one of the ouliers of Fleur's playlist. It's a very quiet and calm song with only the guitar and a little bit of piano as instruments.The lighter bloks show this. The main chords that are used are Cmaj,Amin Emin and Fmaj. During the darker blok from around 110 seconds to 225 seconds, the second verse starts, which has some background noises, and the chorus and bridge are played, which  have more dynamics that before. 
 
-### "December", **Fleur's** most listened song in a tempogram
+### **Tempograms**: Studying the tempi
+#### "December", **Fleur's** most listened song
 
-#### Novelty 
+
 ```{r}
 decemberF <-
   get_tidy_audio_analysis("2XTyx7Txuj6dZ1lLYLj3Wc") %>%
@@ -949,7 +769,7 @@ decemberF %>%
 ****
 In this plot you can see the onsets, which is where things change in the song. It has a lot of high peaks. 
 
-#### Tempogram
+
 ```{r}
 decemberF <-
   get_tidy_audio_analysis("2XTyx7Txuj6dZ1lLYLj3Wc")
@@ -966,11 +786,11 @@ tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) %>%
 
 
 ****
-Here you can see that "December" has a clear beat, which you can see the tempogram you can see a nice yellow line of the beat. The line sits around 100BPM, which is slower than I expected.
+Here you can see that "December" has a clear beat. You can see this in the tempogram because of the yellow line. The line sits around 100BPM, which is slower than I expected.
 
-### "WHAT'S GOOD", one of **Julie's** songs in a tempogram
+#### "WHAT'S GOOD", one of **Julie's** songs
 
-#### Novelty
+
 
 ```{r}
 whatsgood <- get_tidy_audio_analysis("6bOkaEXc5CopinGazSLokx")
@@ -995,7 +815,7 @@ whatsgood %>%
 ****
 This plot shows the onsets of the "WHAT's GOOD". It begins with a very high peak, but the rest are a lot smaller.
 
-#### Tempogram
+
 ```{r}
 whatsgood <- get_tidy_audio_analysis("6bOkaEXc5CopinGazSLokx")
 
@@ -1009,11 +829,11 @@ whatsgood %>%
 ```
 
 ****
-"WHAT'S GOOD" has an evident tempo, as you can see from the yellow line in the tempogram. The parts where there is more yellow at the bottom en top too, the song has an instrument (I think a synthesizer) that creates a kind of grainy noise. The line sits a bit under 120BPM.
+"WHAT'S GOOD" has an evident tempo, as you can see from the yellow line in the tempogram. The parts where there is more yellow at the bottom and top, the song has an instrument (I think a synthesizer) that creates a kind of grainy noise. The line sits a bit under 120BPM.
 
-### "The Less I Know The Better", one of **Hemke's** songs in a tempogrma
+#### "The Less I Know The Better", one of **Hemke's** songs
 
-#### Novelty 
+  
 ```{r}
 tame <- get_tidy_audio_analysis("6K4t31amVTZDgR3sKmwUJJ")
 
@@ -1033,9 +853,9 @@ tame %>%
 ```
 
 ****
-The onsets of "The Less I Know The Better" begin with a very high peak, but the rest is a lot smaller. It looks similair to the onsets of "WHAT'S GOOD".  
+The onsets of "The Less I Know The Better" begins with a very high peak, but the rest is a lot smaller. It looks similair to the onsets of "WHAT'S GOOD".  
 
-#### Tempogram
+
 ```{r}
 tame <- get_tidy_audio_analysis("6K4t31amVTZDgR3sKmwUJJ")
 
@@ -1051,7 +871,355 @@ tame %>%
 ****
 The tempogram is very clear. There is a very obvious yellow line that sits a bit lower that 120BPM. 
 
-### Conclusion
+### **Clustering**: what fits together?
+
+
+#### **Fleur**
+```{r}
+eennaam <-
+  get_playlist_audio_features( "6ywNWWhYlG2kr738AAal7D","0Cr3yhXx2WayVeANlooriq") %>%
+  add_audio_analysis() %>%
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) %>%
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) %>%
+  mutate_at(vars(pitches, timbre), map, bind_rows) %>%
+  unnest(cols = c(pitches, timbre))
+```
+
+```{r}
+eennaam_juice <-
+  recipe(
+    track.name ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration +
+      C + `C#|Db` + D + `D#|Eb` +
+      E + `F` + `F#|Gb` + G +
+      `G#|Ab` + A + `A#|Bb` + B +
+      c01 + c02 + c03 + c04 + c05 + c06 +
+      c07 + c08 + c09 + c10 + c11 + c12,
+    data = eennaam
+  ) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>% 
+  # step_range(all_predictors()) %>% 
+  prep(eennaam %>% mutate(track.name = str_trunc(track.name, 20))) %>%
+  juice() %>%
+  column_to_rownames("track.name")
+```
+
+```{r}
+eennaam_dist <- dist(eennaam_juice, method = "euclidean")
+```
+
+
+```{r}
+eennaam_dist %>% 
+  hclust(method = "complete") %>% # Try single, average, and complete.
+  dendro_data() %>%
+  ggdendrogram()
+```
+
+****
+This clustering shows the 10 most listened songs of Fleur's playlist. It has two pretty clear clusters. One with only three songs and one with the other seven. The songs on the right side all have a fast tempo and have the same kind of structure.
+
+
+#### **Hemke**
+
+```{r}
+eenaam <-
+  get_playlist_audio_features( "0Cr3yhXx2WayVeANlooriq","6ywNWWhYlG2kr738AAal7D") %>%
+  add_audio_analysis() %>%
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) %>%
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) %>%
+  mutate_at(vars(pitches, timbre), map, bind_rows) %>%
+  unnest(cols = c(pitches, timbre))
+```
+
+```{r}
+eenaam_juice <-
+  recipe(
+    track.name ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration +
+      C + `C#|Db` + D + `D#|Eb` +
+      E + `F` + `F#|Gb` + G +
+      `G#|Ab` + A + `A#|Bb` + B +
+      c01 + c02 + c03 + c04 + c05 + c06 +
+      c07 + c08 + c09 + c10 + c11 + c12,
+    data = eenaam
+  ) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>% 
+  # step_range(all_predictors()) %>% 
+  prep(eenaam %>% mutate(track.name = str_trunc(track.name, 20))) %>%
+  juice() %>%
+  column_to_rownames("track.name")
+```
+
+```{r}
+eenaam_dist <- dist(eenaam_juice, method = "euclidean")
+```
+
+```{r}
+eenaam_dist %>% 
+  hclust(method = "complete") %>% # Try single, average, and complete.
+  dendro_data() %>%
+  ggdendrogram()
+```
+
+****
+This clustering shows the 10 most listened songs of Hemke's. Just like Fleur's, this one also has two pretty clear clusters. But here there are two clusters of five songs. The songs on the right cluster are al a bit slower. The songs in the left have a bit more valence and can be considers happier. 
+ 
+
+#### **Julie**
+
+
+```{r}
+eeaam <-
+  get_playlist_audio_features( "0Cr3yhXx2WayVeANlooriq","018Ld7uIx2xTRPXzVVut8z") %>%
+  add_audio_analysis() %>%
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) %>%
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) %>%
+  mutate_at(vars(pitches, timbre), map, bind_rows) %>%
+  unnest(cols = c(pitches, timbre))
+```
+
+```{r}
+eeaam_juice <-
+  recipe(
+    track.name ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration +
+      C + `C#|Db` + D + `D#|Eb` +
+      E + `F` + `F#|Gb` + G +
+      `G#|Ab` + A + `A#|Bb` + B +
+      c01 + c02 + c03 + c04 + c05 + c06 +
+      c07 + c08 + c09 + c10 + c11 + c12,
+    data = eeaam
+  ) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>% 
+  # step_range(all_predictors()) %>% 
+  prep(eeaam %>% mutate(track.name = str_trunc(track.name, 20))) %>%
+  juice() %>%
+  column_to_rownames("track.name")
+```
+
+```{r}
+eeaam_dist <- dist(eeaam_juice, method = "euclidean")
+```
+
+
+```{r}
+eeaam_dist %>% 
+  hclust(method = "complete") %>% # Try single, average, and complete.
+  dendro_data() %>%
+  ggdendrogram()
+```
+
+****
+This clustering shows the 10 most listened songs of Julie's playlist. There are three clear clusters. What I find interesting is that I have a few of the same songs as Hemke, but they are clustered differently. For example, "Golden" and "Lights Up" are together in one cluster here, but in Hemke's cluster "Golden" was on the far left and "Lights Up" on the far right. The middle cluster here has more upbeat songs, and the left cluster has two slow and sad songs. 
+
+### **Classification**:is it the same?  
+
+#### **Nearest Neighbors**
+```{r}
+juliie <- get_playlist_audio_features("spotify", "37i9dQZF1EM27HE4pdYYcz")
+fleuur <- get_playlist_audio_features("spotify", "37i9dQZF1EMd6LXIgrTylx")
+hemmke <- get_playlist_audio_features("spotify", "37i9dQZF1EMgeVFiZwhb4Z")
+drie <-
+  bind_rows(
+    juliie %>% mutate(playlist = "Julie") %>% slice_head(n = 20),
+    fleuur %>% mutate(playlist = "Fleur") %>% slice_head(n = 20),
+    hemmke %>% mutate(playlist = "Hemke") %>% slice_head(n = 20)
+  ) 
+```
+
+
+```{r}
+drie_features <-
+  drie %>%  
+  add_audio_analysis() %>% 
+  mutate(
+    playlist = factor(playlist),
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(
+        segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean",
+      )
+  ) %>%
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) %>%
+  mutate_at(vars(pitches, timbre), map, bind_rows) %>%
+  unnest(cols = c(pitches, timbre))
+```
+
+```{r}
+drie_recipe <-
+  recipe(
+    playlist ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration +
+      C + `C#|Db` + D + `D#|Eb` +
+      E + `F` + `F#|Gb` + G +
+      `G#|Ab` + A + `A#|Bb` + B +
+      c01 + c02 + c03 + c04 + c05 + c06 +
+      c07 + c08 + c09 + c10 + c11 + c12,
+    data = drie_features,          # Use the same name as the previous block.
+  ) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors())
+```
+
+```{r}
+drie_cv <- drie_features %>% vfold_cv(5)
+```
+
+
+```{r}
+knn_model <-
+  nearest_neighbor(neighbors = 1) %>%
+  set_mode("classification") %>% 
+  set_engine("kknn")
+drie_knn <- 
+  workflow() %>% 
+  add_recipe(drie_recipe) %>% 
+  add_model(knn_model) %>% 
+  fit_resamples(
+    drie_cv, 
+    control = control_resamples(save_pred = TRUE)
+  )
+```
+
+```{r}
+get_conf_mat <- function(fit) {
+  outcome <- .get_tune_outcome_names(fit)
+  fit %>% 
+    collect_predictions() %>% 
+    conf_mat(truth = outcome, estimate = .pred_class)
+}  
+
+get_pr <- function(fit) {
+  fit %>% 
+    conf_mat_resampled() %>% 
+    group_by(Prediction) %>% mutate(precision = Freq / sum(Freq)) %>% 
+    group_by(Truth) %>% mutate(recall = Freq / sum(Freq)) %>% 
+    ungroup() %>% filter(Prediction == Truth) %>% 
+    select(class = Prediction, precision, recall)}
+
+drie_knn %>% get_conf_mat()
+```
+
+```{r}
+
+
+drie_knn %>% get_conf_mat() %>% autoplot(type = "heatmap")
+```
+
+****
+The confusion matrix shows that the classifier can tell Fleur apart from Hemke and Julie, but that it isn't great at telling Hemke and Julie apart from each other. Since most samples from Fleur are classified as Fleur, while most samples from Hemke are classified as Julie and vice versa. This makes sense since Hemke and Julie listen to very similair music. 
+
+
+
+#### **Timbre components**
+```{r}
+drie_features %>%
+  ggplot(aes(x = c11, y = c04, colour = playlist, size = energy)) +
+  geom_point(alpha = 0.8) +
+  scale_color_viridis_d() +
+  labs(
+    x = "Timbre Component 11",
+    y = "Timbre Component 4",
+    size = "Energy",
+    colour = "Playlist"
+  )
+```
+
+****
+This plot shows that Hemke and Julie, once again, have a lot of overlap and Fleur is more of a lone wolf. Hemke and Julie have more of the timbre component 11, and Fleur lies a bit in between the two components, with a few outliers to the timbre component 4. 
+
+### **Conclusion**
+So, I expected that Hemke and I would have a lot of similar songs in our playlist and that Fleur's playlist would be a lot different. I also thought that Hemke and I would have a lot of valence and that Fleur would have more energy. My expectations were mostly true. Fleur's playlist does have more danceability that Hemke and I's, but Hemke and I also had a good amount of danceablilty. We all three had quite similar amounts of valence in our playlist, but Fleur's had more valence than my playlist. This I didn't expect because I listen to more pop music and I associate that with a positive feeling. I also expected Fleur's playlist to have more energy than it did. All our playlist had approximately the same amount of loudness. Fleur's playlist had a bit more speechiness, which makes sense since she listens to more rap music. Our songs were also tempo wise around the most average tempo, which is 120BPM. I also looked at some of the outliers in our playlists, which was interesting to do. Hemke and I's playlist are indeed more similar to each others than to Fleur's and Fleur's was less different than I thought it would be. 
+
+
+
 
 
 
